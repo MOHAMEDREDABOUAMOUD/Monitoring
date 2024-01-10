@@ -1,0 +1,60 @@
+{% block title %}Client Detail{% endblock %}
+
+{% block content %}
+    <h2>Client space</h2>
+
+    <form action="{{ url_for('create_client') }}" method="post">
+        <label for="name">Client Name:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <label for="ddress">IP Address:</label>
+        <input type="text" id="address" name="address" required>
+
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" name="latitude" required>
+
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" name="longitude" required>
+
+        <label for="type">Client Type:</label>
+        <select id="type" name="type">
+            <option value="ENDPOINT">ENDPOINT</option>
+            <option value="CITY">CITY</option>
+            <option value="IOT">IOT</option>
+        </select>
+
+        <button type="submit">Add Client</button>
+        
+        {% if error_add %}
+            <p class="error-message">{{ error_add }}</p>
+        {% endif %}
+    </form>
+
+    <h3>Client Data</h3>
+    <div id="chart-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>IP Address</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Type</th>
+                    <th>Details</th> 
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in client_list %}
+                    <tr>
+                        <td>{{ client.name }}</td>
+                        <td>{{ client.address }}</td>
+                        <td>{{ client.latitude }}</td>
+                        <td>{{ client.longitude }}</td>
+                        <td>{{ client.type }}</td>
+                        <td><a href="{{ url_for('details', client_id=client.id) }}">Details</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
