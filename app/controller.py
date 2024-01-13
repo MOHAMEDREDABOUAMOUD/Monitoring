@@ -36,6 +36,7 @@ def login():
         else:
             return render_template('login.html',error_auth="login or password incorrect")
     return render_template('login.html')
+
 @app.route('/create_client', methods=['POST'])
 def create_client():
     if request.method == 'POST':
@@ -54,6 +55,14 @@ def create_client():
 @app.route('/details', methods=['post'])  
 def details(client_id):
         return render_template('client_details.html', client_list=daoo.getClients())
+
+@app.route('/deleteClient', methods=['POST'])
+def deleteClient():
+    client_id = request.form.get('client_id')
+    if client_id:
+        daoo.delete(client_id)
+    return render_template('client_details.html', client_list=daoo.getClients())
+
 @app.route('/logout')
 def logout():
     session.pop('user_id',None)

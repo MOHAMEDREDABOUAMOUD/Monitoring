@@ -1,3 +1,4 @@
+from bson import ObjectId
 from pymongo import MongoClient
 
 class dao:
@@ -14,6 +15,8 @@ class dao:
     def addClient(self,object):
         self.clients.insert_one(object)
     def delete(self,id):
+        print(id)
+        id = ObjectId(id) if isinstance(id, str) else id
         self.clients.delete_one({"_id":id})
     def update(self,object):
         self.clients.update_one({'_id':object['_id']},{'$set':object})
