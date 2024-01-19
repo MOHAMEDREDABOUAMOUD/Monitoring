@@ -9,6 +9,7 @@ from flask import(
     jsonify
 )
 from app.dao import dao
+from app.business import Business
 import hashlib
 from datetime import datetime
 
@@ -16,6 +17,7 @@ app=Flask(__name__)
 def generateKey(login):
    return hashlib.sha512(str(login).encode('utf-8')).hexdigest()
 daoo=dao()
+services = Business()
 app.secret_key='1234'
 @app.route('/')
 def index():
@@ -63,14 +65,21 @@ def details():
             # print(stats)
             ip_target='127.0.0.1'
             community='public'
-            memory_ram_oid='1.3.6.1.2.1.25.2.2.0'
-            memory_used_oid='1.3.6.1.2.1.25.2.3.1.6.1'
-            cpu_oid = '1.3.6.1.2.1.25.3.3.1.2.3'
-            print('espace ROM utilise',daoo.get(ip_target,community,memory_used_oid))
-            print('charge memoire RAM',daoo.get(ip_target,community,memory_ram_oid))
-            print('charge cpu',daoo.get(ip_target,community,cpu_oid))
+            memory_ram_oid='.1.3.6.1.2.1.25.2.2.0'
+            memory_used_oid='.1.3.6.1.2.1.25.2.3.1.6.1'
+            memory_total_oid='.1.3.6.1.2.1.25.3.6.1.4.45'
+            print('total ROM : ',services.get_disk_storage_info(ip_target,community)[0])
+            print('used ROM : ',services.get_disk_storage_info(ip_target,community)[1])
+            #print('total RAM : ',services.get(ip_target,community,memory_ram_oid))
+            print('total RAM : ',services.get_disk_storage_info(ip_target, community)[2])
+            print("Used RAM : ",services.get_disk_storage_info(ip_target,community)[3])
+            # print('charge cpu : ',services.get(ip_target,community,cpu_oid))
+            # print('some cpu : ', services.get_sum_of_cpu_cores(ip_target,community))
+            # print('max cpu ghz : ', services.get_max_clock_speed())
+            print('charge cpu : ', services.get_cpu_percentage(ip_target,community))
+            
         elif client["type"] == "CITY":
-            data_dict = daoo.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
+            data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
             for date, data in data_dict.items():
                 print(f"Weather on {date} in {client["name"]}:")
                 for key, value in data.items():
@@ -102,5 +111,5 @@ def update_charts_route():
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
     print(daoo.currentCity, start_date, end_date)
-    data_dict = daoo.get_precipitation_history_openweather(daoo.currentCity, start_date, end_date)
+    data_dict = services.get_precipitation_history_openweather(daoo.currentCity, start_date, end_date)
     return render_template('dashboardCity.html', data_dict=data_dict)

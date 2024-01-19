@@ -1,5 +1,6 @@
 from dataclasses import dataclass,field
 import datetime
+from pymongo import MongoClient
 
 @dataclass
 class EndDevice():
@@ -30,3 +31,26 @@ class CityWeather():
     latitude:float
     precipitation:float
     date:datetime
+    
+@dataclass
+class Device:
+    ip:str
+    description:str
+    
+@dataclass
+class Iot:
+    mac:str
+    temp:float
+    
+class IotDao:
+    @staticmethod
+    def getAll():
+        client=MongoClient('mongodb://localhost:36000')
+        db=client["db_hosts"]
+        #db["test"].insert_one({"id":1})
+        objects:list=[]
+        for obj in db["test"].find():
+            objects.append(obj)
+        print(objects)
+if __name__ == "__main__":
+    IotDao.getAll()

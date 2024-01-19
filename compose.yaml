@@ -1,0 +1,16 @@
+services:
+  flask:
+    build: .
+    container_name: flask
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    volumes:
+      - ./:/app
+
+  db:
+    image: mongo
+    container_name: mongo
+    ports:
+      - 36000:27017
