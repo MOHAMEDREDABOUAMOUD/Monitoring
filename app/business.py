@@ -1,20 +1,11 @@
 from pysnmp.hlapi import *
 import requests
 from datetime import datetime, timedelta
-import psutil
+import matplotlib.pyplot as plt
 
 class Business:
     def __init__(self) -> None:
         pass
-    def get_used_memory(self):
-        try:
-            memory_info = psutil.virtual_memory()
-
-            used_memory_bytes = memory_info.used
-            
-            return used_memory_bytes
-        except Exception as e:
-            return None
             
     def get(self, target, community,oid):
         ErrorIndication, ErrorStatus, ErrorIndex,varBinds= next(
@@ -57,9 +48,8 @@ class Business:
     def get_disk_storage_info(self, target, community):
         storage = []
         usedStorage =[]
-        # Iterate over storage table
         i=0
-        for index in range(1, 10):  # Assuming a maximum of 10 partitions, adjust as needed
+        for index in range(1, 10):
             try:
                 hrStorageSize = int(self.get(target, community, f'1.3.6.1.2.1.25.2.3.1.5.{index}'))
                 hrStorageUsed = int(self.get(target, community, f'1.3.6.1.2.1.25.2.3.1.6.{index}'))
@@ -143,3 +133,64 @@ class Business:
 
             start_date += timedelta(days=1)
         return data_dict
+    
+    def create_dashboard_enddevice(self, data):
+        if not data:
+            return "No data found."
+
+        # Extracting data for charts
+        dates = [entry['date'] for entry in data]
+        #dates = [datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ") for date in dates]
+        storage_used = [entry['storage_used'] for entry in data]
+        storage = [entry['storage'] for entry in data][0]
+        ram_used = [entry['ram_used'] for entry in data]
+        ram = [entry['ram'] for entry in data][0]
+        cpu_percentage = [entry['cpu'] for entry in data]
+        
+        print("dates : ",dates)
+        print("storage :", storage)
+        print("ram :", ram)
+
+        # Creating and saving the Storage Used chart
+        plt.figure(figsize=(10, 5))
+        plt.plot(dates, storage_used, label='Storage Used', marker='o')
+        plt.xlabel('Date')
+        plt.ylabel('Storage Used')
+        plt.title('Storage Used Over Time')
+        plt.xticks(rotation=45)
+        plt.legend()
+        plt.ylim(0, storage)  # Set y-axis limits
+        storage_chart_path = './app/static/charts/storage_chart.png'
+        plt.savefig(storage_chart_path, bbox_inches='tight')
+        storage_chart_path = '../static/charts/storage_chart.png'
+        plt.close()
+
+        # Creating and saving the RAM Used chart
+        plt.figure(figsize=(10, 5))
+        plt.plot(dates, ram_used, label='RAM Used', marker='o', color='orange')
+        plt.xlabel('Date')
+        plt.ylabel('RAM Used')
+        plt.title('RAM Used Over Time')
+        plt.xticks(rotation=45)
+        plt.legend()
+        plt.ylim(0, ram)  # Set y-axis limits
+        ram_chart_path = './app/static/charts/ram_chart.png'
+        plt.savefig(ram_chart_path, bbox_inches='tight')
+        ram_chart_path = '../static/charts/ram_chart.png'
+        plt.close()
+
+        # Creating and saving the CPU Percentage chart
+        plt.figure(figsize=(10, 5))
+        plt.plot(dates, cpu_percentage, label='CPU Percentage', marker='o', color='green')
+        plt.xlabel('Date')
+        plt.ylabel('CPU Percentage')
+        plt.title('CPU Percentage Over Time')
+        plt.xticks(rotation=45)
+        plt.legend()
+        cpu_chart_path = './app/static/charts/cpu_chart.png'
+        plt.savefig(cpu_chart_path, bbox_inches='tight')
+        cpu_chart_path = '../static/charts/cpu_chart.png'
+        plt.close()
+
+        # Return paths to the saved charts
+        return storage_chart_path, ram_chart_path, cpu_chart_path

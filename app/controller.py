@@ -6,9 +6,10 @@ from flask import(
     redirect,
     session,
     url_for,
-    jsonify
+    jsonify,
+    send_file
 )
-from app.dao import dao
+from app.dao import Dao
 from app.business import Business
 import hashlib
 from datetime import datetime
@@ -16,7 +17,7 @@ from datetime import datetime
 app=Flask(__name__)
 def generateKey(login):
    return hashlib.sha512(str(login).encode('utf-8')).hexdigest()
-daoo=dao()
+daoo=Dao()
 services = Business()
 app.secret_key='1234'
 @app.route('/')
@@ -43,13 +44,12 @@ def login():
 @app.route('/create_client', methods=['POST'])
 def create_client():
     if request.method == 'POST':
+        id=daoo.getMaxId()
         name=request.form['name']
         address=request.form['address']
         type=request.form['type']
-        latitude=request.form['latitude']
-        longitude=request.form['longitude']
         
-        daoo.addClient({'name':name, 'address':address, 'type':type, 'latitude':latitude, 'longitude':longitude})
+        daoo.addClient({'id':id+1,'name':name, 'address':address, 'type':type})
         
         return render_template('client_details.html', client_list=daoo.getClients())
     else:
@@ -58,25 +58,23 @@ def create_client():
 @app.route('/details', methods=['post'])  
 def details():
     client_id = request.form.get('client_id')
+    print(client_id)
     if client_id:
         client=daoo.selectClient(client_id)
-        if client["type"] == 'ENDPOINT':
-            # stats = daoo.getstats(client["address"], "public")
-            # print(stats)
-            ip_target='127.0.0.1'
-            community='public'
-            memory_ram_oid='.1.3.6.1.2.1.25.2.2.0'
-            memory_used_oid='.1.3.6.1.2.1.25.2.3.1.6.1'
-            memory_total_oid='.1.3.6.1.2.1.25.3.6.1.4.45'
-            print('total ROM : ',services.get_disk_storage_info(ip_target,community)[0])
-            print('used ROM : ',services.get_disk_storage_info(ip_target,community)[1])
-            #print('total RAM : ',services.get(ip_target,community,memory_ram_oid))
-            print('total RAM : ',services.get_disk_storage_info(ip_target, community)[2])
-            print("Used RAM : ",services.get_disk_storage_info(ip_target,community)[3])
-            # print('charge cpu : ',services.get(ip_target,community,cpu_oid))
-            # print('some cpu : ', services.get_sum_of_cpu_cores(ip_target,community))
-            # print('max cpu ghz : ', services.get_max_clock_speed())
-            print('charge cpu : ', services.get_cpu_percentage(ip_target,community))
+        print(client)
+        if client["type"] == 'ENDDEVICE':
+            #ip_target='127.0.0.1'
+            #community='public'
+            data = daoo.getEndDevices(client["id"])
+            print("data : ", data)
+            chart_paths = services.create_dashboard_enddevice(data)
+            print("charts : ", chart_paths)
+            return render_template('dashboardEndDevice.html', chart_paths=chart_paths)
+            # print('total ROM : ',services.get_disk_storage_info(ip_target,community)[0])
+            # print('used ROM : ',services.get_disk_storage_info(ip_target,community)[1])
+            # print('total RAM : ',services.get_disk_storage_info(ip_target, community)[2])
+            # print("Used RAM : ",services.get_disk_storage_info(ip_target,community)[3])
+            # print('charge cpu : ', services.get_cpu_percentage(ip_target,community))
             
         elif client["type"] == "CITY":
             data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
@@ -89,6 +87,10 @@ def details():
         else:
             flash("Unsupported client type")
     return render_template('client_details.html', client_list=daoo.getClients())
+
+@app.route('/charts/<chart_name>')
+def serve_chart(chart_name):
+    return send_file(chart_name, mimetype='image/png')
 
 @app.route('/deleteClient', methods=['POST'])
 def deleteClient():
