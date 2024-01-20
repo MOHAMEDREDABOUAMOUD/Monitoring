@@ -63,27 +63,18 @@ def details():
         client=daoo.selectClient(client_id)
         print(client)
         if client["type"] == 'ENDDEVICE':
-            #ip_target='127.0.0.1'
-            #community='public'
             data = daoo.getEndDevices(client["id"])
             print("data : ", data)
             chart_paths = services.create_dashboard_enddevice(data)
             print("charts : ", chart_paths)
             return render_template('dashboardEndDevice.html', chart_paths=chart_paths)
-            # print('total ROM : ',services.get_disk_storage_info(ip_target,community)[0])
-            # print('used ROM : ',services.get_disk_storage_info(ip_target,community)[1])
-            # print('total RAM : ',services.get_disk_storage_info(ip_target, community)[2])
-            # print("Used RAM : ",services.get_disk_storage_info(ip_target,community)[3])
-            # print('charge cpu : ', services.get_cpu_percentage(ip_target,community))
             
         elif client["type"] == "CITY":
-            data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
-            for date, data in data_dict.items():
-                print(f"Weather on {date} in {client["name"]}:")
-                for key, value in data.items():
-                    print(f"{key}: {value}")
-                print("\n")
-            return render_template('dashboardCity.html', data_dict=data_dict)
+            daoo.currentCity = client["name"]
+            charts = services.create_dashboard_city(client["name"], "2024-01-01", "2024-01-02")
+            #data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
+            chart=[charts[0]]
+            return render_template('dashboardCity.html', charts_paths=chart)
         else:
             flash("Unsupported client type")
     return render_template('client_details.html', client_list=daoo.getClients())
@@ -109,9 +100,10 @@ def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/update_charts', methods=['POST'])
-def update_charts_route():
+def update_charts():
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
-    print(daoo.currentCity, start_date, end_date)
-    data_dict = services.get_precipitation_history_openweather(daoo.currentCity, start_date, end_date)
-    return render_template('dashboardCity.html', data_dict=data_dict)
+    charts = services.create_dashboard_city(daoo.currentCity, start_date, end_date)
+    #data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
+    chart=[charts[0]]
+    return render_template('dashboardCity.html', charts_paths=chart)

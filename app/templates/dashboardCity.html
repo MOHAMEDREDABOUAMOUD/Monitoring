@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>City Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Include other necessary libraries here -->
 </head>
 <body>
     <h1>City Dashboard</h1>
 
-    <form method="POST" action="{{ url_for('update_charts_route') }}">
+    <form method="POST" action="{{ url_for('update_charts') }}">
         <label for="start_date">Start Date (yyyy-mm-dd):</label>
         <input type="text" name="start_date" required>
 
@@ -20,139 +19,14 @@
         <button type="submit">Update Charts</button>
     </form>
 
-    <div>
-        <canvas id="chart1"></canvas>
-    </div>
-    <div>
-        <canvas id="chart2"></canvas>
-    </div>
-    <div>
-        <canvas id="chart3"></canvas>
-    </div>
-    <div>
-        <canvas id="chart4"></canvas>
-    </div>
-
-    <script>
-        // Dummy data for demonstration
-        var data_dict = {{ data_dict|tojson|safe }};
-        var labels = Object.keys(data_dict);
-        var data1 = Object.values(data_dict).map(item => item["Temperature"]);
-        var data2 = Object.values(data_dict).map(item => item["Feels Like"]);
-        var data3 = Object.values(data_dict).map(item => item["Humidity"]);
-        var data4 = Object.values(data_dict).map(item => item["Wind Speed"]);
-
-        var ctx1 = document.getElementById('chart1').getContext('2d');
-        var chart1 = new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: data1,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'category',
-                        labels: labels
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        var ctx2 = document.getElementById('chart2').getContext('2d');
-        var chart2 = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Feels Like (°C)',
-                    data: data2,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 2,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'category',
-                        labels: labels
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        var ctx3 = document.getElementById('chart3').getContext('2d');
-        var chart3 = new Chart(ctx3, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Humidity (%)',
-                    data: data3,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'category',
-                        labels: labels
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        var ctx4 = document.getElementById('chart4').getContext('2d');
-        var chart4 = new Chart(ctx4, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Wind Speed (m/s)',
-                    data: data4,
-                    backgroundColor: 'rgba(255, 206, 86, 0.5)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'category',
-                        labels: labels
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
+    {% if charts_paths %}
+        {% for chart_path in charts_paths %}
+            <div>
+                <img src="{{chart_path}}" alt="Chart">
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No data available.</p>
+    {% endif %}
 </body>
 </html>

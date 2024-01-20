@@ -2,10 +2,18 @@ from pysnmp.hlapi import *
 import requests
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+from geopy.geocoders import Nominatim
+import openmeteo_requests
+import requests_cache
+import pandas as pd
+from retry_requests import retry
+from sklearn.linear_model import LinearRegression
 
 class Business:
     def __init__(self) -> None:
-        pass
+        self.cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+        self.retry_session = retry(self.cache_session, retries=5, backoff_factor=0.2)
+        self.openmeteo = openmeteo_requests.Client(session=self.retry_session)
             
     def get(self, target, community,oid):
         ErrorIndication, ErrorStatus, ErrorIndex,varBinds= next(
@@ -133,6 +141,105 @@ class Business:
 
             start_date += timedelta(days=1)
         return data_dict
+    
+    def get_precipitation_history(self, latitude, longitude, start_date, end_date):
+        #print(f"lat : {latitude}, log : {longitude}, start_date : {start_date}, end_date : {end_date}")
+        try:
+            url = "https://api.open-meteo.com/v1/forecast"
+            params = {
+                "latitude": latitude,
+                "longitude": longitude,
+                "hourly": "temperature_2m",
+                "start": start_date,
+                "end": end_date
+            }
+            responses = self.openmeteo.weather_api(url, params=params)
+
+            response = responses[0]
+            # Check if the response contains the expected data
+            if hasattr(response, 'Hourly') and response.Hourly() and response.Hourly().Variables(0):
+                hourly = response.Hourly()
+                precipitation_data = hourly.Variables(0).ValuesAsNumpy()
+
+                return precipitation_data
+            else:
+                print("Unexpected response format. Unable to retrieve precipitation data.")
+                return None
+        except Exception as e:
+            print(f"Caught an exception: {e}")
+    
+    def predict_precipitation(self, X, y):
+        model = LinearRegression()
+        model.fit(X, y)
+        return model.predict(X)
+    
+    def get_coordinates(self, city_name):
+        geolocator = Nominatim(user_agent="your_app_name")
+        location = geolocator.geocode(city_name)
+        return (location.latitude, location.longitude)
+    
+    def plot_precipitation(self, city, start_date, end_date, save_path=None):
+        latitude, longitude = self.get_coordinates(city)
+        precipitation_history = self.get_precipitation_history(latitude, longitude, start_date, end_date)
+        #print(f"presip : {precipitation_history}")
+        
+        plt.figure(figsize=(10, 5))
+        plt.plot(start_date + pd.to_timedelta(range(len(precipitation_history)), unit='h'), precipitation_history, label='Precipitation History')
+        plt.xlabel('Date')
+        plt.ylabel('Precipitation')
+        plt.title(f'Precipitation History for {city}')
+        plt.legend()
+
+        if save_path:
+            plt.savefig(save_path)
+        else:
+            plt.show()
+
+        plt.close()
+
+        if save_path:
+            return save_path
+        else:
+            return None
+
+    def plot_predictions(self, X, y, save_path=None):
+        predictions = self.predict_precipitation(X, y)
+
+        plt.figure(figsize=(10, 5))
+        plt.plot(range(len(predictions)), predictions, label='Predictions')
+        plt.xlabel('Time')
+        plt.ylabel('Predicted Precipitation')
+        plt.title('Predictions')
+        plt.legend()
+
+        if save_path:
+            plt.savefig(save_path)
+        else:
+            plt.show()
+
+        plt.close()
+
+        if save_path:
+            return save_path
+        else:
+            return None
+
+    def create_dashboard_city(self, city, start_date, end_date):
+        start_date = datetime.strptime(start_date, f"%Y-%m-%d")
+        end_date = datetime.strptime(end_date, f"%Y-%m-%d")
+        # Plot Precipitation
+        precipitation_save_path = f'./app/static/charts/precipitation_{city.replace(" ", "_")}.png'
+        self.plot_precipitation(city, start_date, end_date, save_path=precipitation_save_path)
+
+        #X = [...]  # Your feature matrix
+        #y = [...]  # Your target variable
+
+        predictions_save_path = f'./app/static/charts/predictions_{city.replace(" ", "_")}.png'
+        #self.plot_predictions(X, y, save_path=predictions_save_path)
+
+        precipitation_save_path = f'../static/charts/precipitation_{city.replace(" ", "_")}.png'
+        predictions_save_path = f'../static/charts/predictions_{city.replace(" ", "_")}.png'
+        return [precipitation_save_path, predictions_save_path]
     
     def create_dashboard_enddevice(self, data):
         if not data:
