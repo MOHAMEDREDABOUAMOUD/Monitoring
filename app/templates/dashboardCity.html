@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>City Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .charts {
+            width: 600px;
+            height: 300px;
+        }
+    </style>    
 </head>
 <body>
-    <h1>City Dashboard</h1>
+    <h1>City Dashboard</h1> 
 
     <form method="POST" action="{{ url_for('update_charts') }}">
         <label for="start_date">Start Date (yyyy-mm-dd):</label>
@@ -19,14 +25,79 @@
         <button type="submit">Update Charts</button>
     </form>
 
-    {% if charts_paths %}
-        {% for chart_path in charts_paths %}
-            <div>
-                <img src="{{chart_path}}" alt="Chart">
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No data available.</p>
-    {% endif %}
+    <div class="charts">
+        <canvas id="precipitationChart"></canvas> <!-- Ajustez la largeur et la hauteur ici -->
+        <canvas id="predictionsChart"></canvas> 
+    </div>
+
+    <script>
+        var precipitationData = {{ precipitation_data.tolist() | tojson }};
+        var predictionsData = {{ predictions_data.tolist() | tojson }};
+        var dateLabels = {{ date_labels | tojson }};  
+        var dateLabels2 = {{ date_labels2 | tojson }}; 
+
+        var precipitationCtx = document.getElementById('precipitationChart').getContext('2d');
+        var predictionsCtx = document.getElementById('predictionsChart').getContext('2d');
+
+        var precipitationChart = new Chart(precipitationCtx, {
+            type: 'line',
+            data: {
+                labels: dateLabels,
+                datasets: [{
+                    label: 'Precipitation',
+                    data: precipitationData,
+                    borderColor: 'blue',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'YYYY-MM-DD'
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Date'
+                        }
+                    }]
+                }
+            }
+        });
+
+        var predictionsChart = new Chart(predictionsCtx, {
+            type: 'line',
+            data: {
+                labels: dateLabels,
+                datasets: [{
+                    label: 'Predicted Precipitation',
+                    data: predictionsData,
+                    borderColor: 'red',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'YYYY-MM-DD'
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Date'
+                        }
+                    }]
+                }
+            }
+        });
+    </script>
 </body>
 </html>

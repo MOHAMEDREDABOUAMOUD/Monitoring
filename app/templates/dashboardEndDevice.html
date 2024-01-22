@@ -4,17 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        /* Container for all charts */
+        .flex {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Center the charts container */
+            gap: 20px; /* Space between charts */
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        /* Individual chart container */
+        .flex .chart-container {
+            flex: 1 1 calc(33.333% - 20px); /* Three items per row, accounting for gap */
+            display: flex;
+            flex-direction: column;
+            min-width: 40%; /* Make charts responsive
+            max-width: 50%; /* Make charts responsive */
+            align-items: center; /* Center the content vertically */
+        }
+        
+        /* Chart image styles */
+        .chart {
+            max-width: 80%; /* Make charts responsive */
+            height: auto; /* Maintain aspect ratio */
+            display: block; /* Remove bottom space under image */
+        }
+        
+        /* Style for chart titles */
+        h2 {
+            color: #007bff;
+            text-align: center;
+            margin: 10px 0; /* Margin around the title */
+        }
+        
+        @media (max-width: 768px) {
+            .flex .chart-container {
+                flex-basis: calc(50% - 20px); /* Two items per row on smaller screens */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .flex .chart-container {
+                flex-basis: 100%; /* Full width on very small screens */
+            }
+        }        
+    </style>
 </head>
 <body>
     <h1>End Device Dashboard</h1>
 
-    <h2>Storage Used Chart</h2>
-    <img src="{{ chart_paths[0] }}" alt="Storage Used Chart">
+    <form method="POST" action="{{ url_for('update_charts_end_device') }}">
+        <label for="start_date">Start Date (yyyy-mm-dd):</label>
+        <input type="text" name="start_date" required>
 
-    <h2>RAM Used Chart</h2>
-    <img src="{{ chart_paths[1] }}" alt="RAM Used Chart">
+        <label for="end_date">End Date (yyyy-mm-dd):</label>
+        <input type="text" name="end_date" required>
 
-    <h2>CPU Percentage Chart</h2>
-    <img src="{{ chart_paths[2] }}" alt="CPU Percentage Chart">
+        <button type="submit">Update Charts</button>
+    </form>
+    
+    <div class="flex">
+        <div class="chart-container">
+            <h2>Storage Used Chart</h2>
+            <img class="chart" src="{{ chart_paths[0] }}" alt="Storage Used Chart">
+        </div>
+
+        <div class="chart-container">
+            <h2>RAM Used Chart</h2>
+            <img class="chart" src="{{ chart_paths[1] }}" alt="RAM Used Chart">
+        </div>
+
+        <div class="chart-container">
+            <h2>CPU Percentage Chart</h2>
+            <img class="chart" src="{{ chart_paths[2] }}" alt="CPU Percentage Chart">
+        </div>
+    </div>
 </body>
 </html>

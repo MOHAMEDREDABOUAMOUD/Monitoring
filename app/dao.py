@@ -20,6 +20,7 @@ class Dao:
         self.IOT=self.db["IOT"]
         
         self.currentCity=""
+        self.currentED=""
         
     def getClients(self):
         objects:list=[]
@@ -61,6 +62,15 @@ class Dao:
     def getEndDevices(self, id):
         objects:list=[]
         for obj in self.EndDevice.find({'id': id}):
+            objects.append(obj)
+        return objects
+    
+    def getEndDevicesByDate(self, id, start_date, end_date):
+        objects = []
+        start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
+        end_datetime = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+
+        for obj in self.EndDevice.find({'id': id, 'date': {'$gte': start_datetime, '$lte': end_datetime}}):
             objects.append(obj)
         return objects
         

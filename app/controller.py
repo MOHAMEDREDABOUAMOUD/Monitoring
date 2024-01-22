@@ -13,6 +13,7 @@ from app.dao import Dao
 from app.business import Business
 import hashlib
 from datetime import datetime
+import matplotlib
 
 app=Flask(__name__)
 def generateKey(login):
@@ -20,6 +21,7 @@ def generateKey(login):
 daoo=Dao()
 services = Business()
 app.secret_key='1234'
+matplotlib.use('Agg')
 @app.route('/')
 def index():
     return render_template('login.html')
@@ -63,18 +65,18 @@ def details():
         client=daoo.selectClient(client_id)
         print(client)
         if client["type"] == 'ENDDEVICE':
+            daoo.currentED=client["id"]
             data = daoo.getEndDevices(client["id"])
-            print("data : ", data)
+            #print("data : ", data)
             chart_paths = services.create_dashboard_enddevice(data)
-            print("charts : ", chart_paths)
+            #print("charts : ", chart_paths)
             return render_template('dashboardEndDevice.html', chart_paths=chart_paths)
             
         elif client["type"] == "CITY":
             daoo.currentCity = client["name"]
-            charts = services.create_dashboard_city(client["name"], "2024-01-01", "2024-01-02")
+            data1, data2, dates1, dates2 = services.create_dashboard_city(client["name"], "2024-01-01", "2024-01-10")
             #data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
-            chart=[charts[0]]
-            return render_template('dashboardCity.html', charts_paths=chart)
+            return render_template('dashboardCity.html', precipitation_data=data1, predictions_data=data2, date_labels=dates1, date_labels2=dates2)
         else:
             flash("Unsupported client type")
     return render_template('client_details.html', client_list=daoo.getClients())
@@ -103,7 +105,15 @@ def dashboard():
 def update_charts():
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
-    charts = services.create_dashboard_city(daoo.currentCity, start_date, end_date)
+    data1, data2, dates1, dates2 = services.create_dashboard_city(daoo.currentCity, start_date, end_date)
     #data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
-    chart=[charts[0]]
-    return render_template('dashboardCity.html', charts_paths=chart)
+    return render_template('dashboardCity.html', precipitation_data=data1, predictions_data=data2, date_labels=dates1, date_labels2=dates2)
+@app.route('/update_charts_end_device', methods=['POST'])
+def update_charts_end_device():
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    data = daoo.getEndDevicesByDate(daoo.currentED, start_date, end_date)
+    print("data : ", data)
+    chart_paths = services.create_dashboard_enddevice(data)
+    print("charts : ", chart_paths)
+    return render_template('dashboardEndDevice.html', chart_paths=chart_paths)

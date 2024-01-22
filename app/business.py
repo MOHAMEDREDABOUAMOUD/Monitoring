@@ -8,13 +8,13 @@ import requests_cache
 import pandas as pd
 from retry_requests import retry
 from sklearn.linear_model import LinearRegression
+import plotly.express as px
 
 class Business:
     def __init__(self) -> None:
         self.cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
         self.retry_session = retry(self.cache_session, retries=5, backoff_factor=0.2)
-        self.openmeteo = openmeteo_requests.Client(session=self.retry_session)
-            
+        self.openmeteo = openmeteo_requests.Client(session=self.retry_session)     
     def get(self, target, community,oid):
         ErrorIndication, ErrorStatus, ErrorIndex,varBinds= next(
             getCmd(SnmpEngine(),
@@ -143,7 +143,7 @@ class Business:
         return data_dict
     
     def get_precipitation_history(self, latitude, longitude, start_date, end_date):
-        #print(f"lat : {latitude}, log : {longitude}, start_date : {start_date}, end_date : {end_date}")
+        print(f"lat : {latitude}, log : {longitude}, start_date : {start_date}, end_date : {end_date}")
         try:
             url = "https://api.open-meteo.com/v1/forecast"
             params = {
@@ -168,78 +168,32 @@ class Business:
         except Exception as e:
             print(f"Caught an exception: {e}")
     
-    def predict_precipitation(self, X, y):
-        model = LinearRegression()
-        model.fit(X, y)
-        return model.predict(X)
-    
     def get_coordinates(self, city_name):
-        geolocator = Nominatim(user_agent="your_app_name")
+        geolocator = Nominatim(user_agent="monitoring")
         location = geolocator.geocode(city_name)
         return (location.latitude, location.longitude)
-    
-    def plot_precipitation(self, city, start_date, end_date, save_path=None):
-        latitude, longitude = self.get_coordinates(city)
-        precipitation_history = self.get_precipitation_history(latitude, longitude, start_date, end_date)
-        #print(f"presip : {precipitation_history}")
-        
-        plt.figure(figsize=(10, 5))
-        plt.plot(start_date + pd.to_timedelta(range(len(precipitation_history)), unit='h'), precipitation_history, label='Precipitation History')
-        plt.xlabel('Date')
-        plt.ylabel('Precipitation')
-        plt.title(f'Precipitation History for {city}')
-        plt.legend()
-
-        if save_path:
-            plt.savefig(save_path)
-        else:
-            plt.show()
-
-        plt.close()
-
-        if save_path:
-            return save_path
-        else:
-            return None
-
-    def plot_predictions(self, X, y, save_path=None):
-        predictions = self.predict_precipitation(X, y)
-
-        plt.figure(figsize=(10, 5))
-        plt.plot(range(len(predictions)), predictions, label='Predictions')
-        plt.xlabel('Time')
-        plt.ylabel('Predicted Precipitation')
-        plt.title('Predictions')
-        plt.legend()
-
-        if save_path:
-            plt.savefig(save_path)
-        else:
-            plt.show()
-
-        plt.close()
-
-        if save_path:
-            return save_path
-        else:
-            return None
 
     def create_dashboard_city(self, city, start_date, end_date):
+        latitude, longitude = self.get_coordinates(city)
+        
         start_date = datetime.strptime(start_date, f"%Y-%m-%d")
         end_date = datetime.strptime(end_date, f"%Y-%m-%d")
-        # Plot Precipitation
-        precipitation_save_path = f'./app/static/charts/precipitation_{city.replace(" ", "_")}.png'
-        self.plot_precipitation(city, start_date, end_date, save_path=precipitation_save_path)
+        precipitation_history = self.get_precipitation_history(latitude, longitude, start_date, end_date)
+        
+        start_date_predictions = datetime.now().strftime(f"%Y-%m-%d")
+        end_date_predictions = (datetime.now() + timedelta(days=10)).strftime(f"%Y-%m-%d")
+        predictions = self.get_precipitation_history(latitude, longitude, start_date_predictions, end_date_predictions)
+        
+        date_range_1 = pd.date_range(start=start_date, end=end_date, freq='D')
+        date_range_2 = pd.date_range(start=start_date_predictions, end=end_date_predictions, freq='D')
 
-        #X = [...]  # Your feature matrix
-        #y = [...]  # Your target variable
-
-        predictions_save_path = f'./app/static/charts/predictions_{city.replace(" ", "_")}.png'
-        #self.plot_predictions(X, y, save_path=predictions_save_path)
-
-        precipitation_save_path = f'../static/charts/precipitation_{city.replace(" ", "_")}.png'
-        predictions_save_path = f'../static/charts/predictions_{city.replace(" ", "_")}.png'
-        return [precipitation_save_path, predictions_save_path]
+        # Convert datetime objects to strings
+        date_range_1_str = date_range_1.strftime('%Y-%m-%d').tolist()
+        date_range_2_str = date_range_2.strftime('%Y-%m-%d').tolist()
+        
+        print(f"{precipitation_history} {predictions}")
+        
+        return precipitation_history, predictions, date_range_1_str, date_range_2_str
     
     def create_dashboard_enddevice(self, data):
         if not data:
@@ -253,10 +207,6 @@ class Business:
         ram_used = [entry['ram_used'] for entry in data]
         ram = [entry['ram'] for entry in data][0]
         cpu_percentage = [entry['cpu'] for entry in data]
-        
-        print("dates : ",dates)
-        print("storage :", storage)
-        print("ram :", ram)
 
         # Creating and saving the Storage Used chart
         plt.figure(figsize=(10, 5))
