@@ -9,6 +9,9 @@
         .charts {
             width: 600px;
             height: 300px;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
         }
     </style>    
 </head>
@@ -72,7 +75,7 @@
         var predictionsChart = new Chart(predictionsCtx, {
             type: 'line',
             data: {
-                labels: dateLabels,
+                labels: dateLabels2,
                 datasets: [{
                     label: 'Predicted Precipitation',
                     data: predictionsData,

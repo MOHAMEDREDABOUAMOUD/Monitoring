@@ -154,7 +154,7 @@ class Business:
         date_range_1_str = date_range_1.strftime('%Y-%m-%d').tolist()
         date_range_2_str = date_range_2.strftime('%Y-%m-%d').tolist()
         
-        print(f"{precipitation_history} {predictions}")
+        #print(f"{precipitation_history} {predictions}")
         
         return precipitation_history, predictions, date_range_1_str, date_range_2_str
     

@@ -75,6 +75,7 @@ def details():
         elif client["type"] == "CITY":
             daoo.currentCity = client["name"]
             data1, data2, dates1, dates2 = services.create_dashboard_city(client["name"], "2024-01-01", "2024-01-10")
+            print(f"{data1} /n {data2} /n {dates1} /n {dates2}")
             #data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
             return render_template('dashboardCity.html', precipitation_data=data1, predictions_data=data2, date_labels=dates1, date_labels2=dates2)
         elif client["type"] == "IOT":
