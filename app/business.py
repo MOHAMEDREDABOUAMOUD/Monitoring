@@ -144,7 +144,7 @@ class Business:
         precipitation_history = self.get_precipitation_history(latitude, longitude, start_date, end_date)
         
         start_date_predictions = datetime.now().strftime(f"%Y-%m-%d")
-        end_date_predictions = (datetime.now() + timedelta(days=10)).strftime(f"%Y-%m-%d")
+        end_date_predictions = (datetime.now() + timedelta(days=7)).strftime(f"%Y-%m-%d")
         predictions = self.get_precipitation_history(latitude, longitude, start_date_predictions, end_date_predictions)
         
         date_range_1 = pd.date_range(start=start_date, end=end_date, freq='D')

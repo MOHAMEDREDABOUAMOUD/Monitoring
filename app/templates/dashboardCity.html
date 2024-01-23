@@ -6,13 +6,105 @@
     <title>City Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .charts {
-            width: 600px;
-            height: 300px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            max-width: 80%;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            gap: 10px; /* Adjust the gap between form items */
+        }
+        form label {
+            flex: 1; /* Full width for labels */
+            max-height: 30px;
+        }
+        
+        form input {
+            flex: 1; /* Full width for input */
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            max-height: 30px;
+        }
+        
+        form button {
+            flex: 1; /* Full width for button */
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            max-height: 30px;
+        }
+        
+        form button:hover {
+            background-color: #0056b3;
+        }
+        .flex {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Center the charts container */
+            gap: 20px; /* Space between charts */
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        /* Individual chart container */
+        .flex .chart-container {
+            flex: 1 1 calc(33.333% - 20px); /* Three items per row, accounting for gap */
             display: flex;
             flex-direction: column;
-            flex-wrap: wrap;
+            min-width: 40%; /* Make charts responsive
+            max-width: 50%; /* Make charts responsive */
+            align-items: center; /* Center the content vertically */
         }
+        
+        /* Chart image styles */
+        .chart {
+            max-width: 80%; /* Make charts responsive */
+            height: auto; /* Maintain aspect ratio */
+            display: block; /* Remove bottom space under image */
+        }
+        
+        /* Style for chart titles */
+        h2 {
+            color: #007bff;
+            text-align: center;
+            margin: 10px 0; /* Margin around the title */
+        }
+        
+        @media (max-width: 768px) {
+            .flex .chart-container {
+                flex-basis: calc(50% - 20px); /* Two items per row on smaller screens */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .flex .chart-container {
+                flex-basis: 100%; /* Full width on very small screens */
+            }
+        }        
     </style>    
 </head>
 <body>
@@ -28,9 +120,13 @@
         <button type="submit">Update Charts</button>
     </form>
 
-    <div class="charts">
-        <canvas id="precipitationChart"></canvas> <!-- Ajustez la largeur et la hauteur ici -->
-        <canvas id="predictionsChart"></canvas> 
+    <div class="flex">
+        <div class="chart-container">
+            <canvas id="precipitationChart" class="chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="predictionsChart" class="chart"></canvas> 
+        </div>
     </div>
 
     <script>
