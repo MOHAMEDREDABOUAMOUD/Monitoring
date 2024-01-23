@@ -77,6 +77,11 @@ def details():
             data1, data2, dates1, dates2 = services.create_dashboard_city(client["name"], "2024-01-01", "2024-01-10")
             #data_dict = services.get_precipitation_history_openweather(client["name"], "2024-01-01", "2024-01-02")
             return render_template('dashboardCity.html', precipitation_data=data1, predictions_data=data2, date_labels=dates1, date_labels2=dates2)
+        elif client["type"] == "IOT":
+            daoo.currentIOT = client["address"]
+            data = daoo.getIOTDataByMac(client["address"])
+            chart_path=services.create_dashboard_IOT(data)
+            return render_template('dashboardIOT.html', chart_path=chart_path)
         else:
             flash("Unsupported client type")
     return render_template('client_details.html', client_list=daoo.getClients())
@@ -117,3 +122,10 @@ def update_charts_end_device():
     chart_paths = services.create_dashboard_enddevice(data)
     print("charts : ", chart_paths)
     return render_template('dashboardEndDevice.html', chart_paths=chart_paths)
+@app.route('/update_charts_iot', methods=['POST'])
+def update_charts_iot():
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    data = daoo.getIOTByMacAndDate(daoo.currentIOT, start_date, end_date)
+    chart_path=services.create_dashboard_IOT(data)
+    return render_template('dashboardIOT.html', chart_path=chart_path)

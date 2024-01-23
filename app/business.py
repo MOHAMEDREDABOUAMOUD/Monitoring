@@ -105,43 +105,6 @@ class Business:
 
         return percentage
 
-    def get_precipitation_history_openweather(self, city, start_date, end_date):
-        BASE_URL = "http://api.openweathermap.org/data/2.5/weather?"
-        API_KEY = "ad078127f38c94f851a179616e3eae8b"
-        CITY = city
-        self.currentCity=city
-        
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
-
-        def kelvin_to_celsius(kelvin):
-            celsius = kelvin - 273.15
-            return celsius
-
-        data_dict = {}
-
-        while start_date <= end_date:
-            timestamp = int(start_date.timestamp())
-            url = f"{BASE_URL}appid={API_KEY}&q={CITY}&dt={timestamp}"
-            response = requests.get(url).json()
-
-            temp_kelvin = response['main']['temp']
-            temp_celsius = kelvin_to_celsius(temp_kelvin)
-            feels_like_kelvin = response['main']['feels_like']
-            feels_like_celsius = kelvin_to_celsius(feels_like_kelvin)
-            wind_speed = response['wind']['speed']
-            humidity = response['main']['humidity']
-
-            data_dict[start_date.strftime("%Y-%m-%d")] = {
-                "Temperature": f"{temp_celsius:.2f}",
-                "Feels Like": f"{feels_like_celsius:.2f}",
-                "Humidity": f"{humidity}",
-                "Wind Speed": f"{wind_speed}"
-            }
-
-            start_date += timedelta(days=1)
-        return data_dict
-    
     def get_precipitation_history(self, latitude, longitude, start_date, end_date):
         print(f"lat : {latitude}, log : {longitude}, start_date : {start_date}, end_date : {end_date}")
         try:
@@ -251,3 +214,28 @@ class Business:
 
         # Return paths to the saved charts
         return storage_chart_path, ram_chart_path, cpu_chart_path
+    def create_dashboard_IOT(self, data):
+        # Convert the list of dictionaries to a DataFrame
+        df = pd.DataFrame(data)
+
+        # Convert the 'date' column to datetime
+        df['date'] = pd.to_datetime(df['date'])
+
+        # Sort the DataFrame by 'date'
+        df = df.sort_values(by='date')
+
+        # Plotting
+        plt.figure(figsize=(10, 5))
+        plt.plot(df['date'], df['temperature'], marker='o', linestyle='-', color='b')
+        
+        # Customize the plot
+        plt.xlabel('Date')
+        plt.ylabel('Temperature')
+        plt.title('IOT Dashboard')
+        plt.grid(True)
+        plt.legend()
+        temp_chart_path = "./app/static/charts/temp_chart.png"
+        plt.savefig(temp_chart_path)
+        temp_chart_path = "../static/charts/temp_chart.png"
+        
+        return temp_chart_path

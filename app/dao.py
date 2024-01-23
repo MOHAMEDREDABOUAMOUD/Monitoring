@@ -91,3 +91,17 @@ class Dao:
         for obj in self.IOT.find({'id': id}):
             objects.append(obj)
         return objects
+    
+    def getIOTDataByMac(self, Mac):
+        objects:list=[]
+        for obj in self.IOT.find({'MAC': Mac}):
+            objects.append(obj)
+        return objects
+    
+    def getIOTByMacAndDate(self, Mac, start_date, end_date):
+        objects:list=[]
+        start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
+        end_datetime = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+        for obj in self.IOT.find({'MAC': Mac, 'date': {'$gte': start_datetime, '$lte': end_datetime}}):
+            objects.append(obj)
+        return objects
