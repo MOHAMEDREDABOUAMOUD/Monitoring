@@ -9,6 +9,9 @@ import pandas as pd
 from retry_requests import retry
 from sklearn.linear_model import LinearRegression
 import plotly.express as px
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+import numpy as np
 
 class Business:
     def __init__(self) -> None:
@@ -131,6 +134,29 @@ class Business:
         except Exception as e:
             print(f"Caught an exception: {e}")
     
+    def get_predictions(self, latitude, longitude):
+        end_date = datetime.now() - timedelta(days=2)
+        start_date = end_date - timedelta(days=14)
+        date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+
+        temperature_data = self.get_precipitation_history(latitude, longitude, start_date, end_date)
+
+        # Reshape the temperature data for training
+        X = np.array(range(len(temperature_data))).reshape(-1, 1)
+        y = temperature_data
+
+        # Create a linear regression model
+        model = LinearRegression()
+
+        # Train the model
+        model.fit(X, y)
+
+        # Make predictions for the next 7 days
+        X_future = np.array(range(len(temperature_data), len(temperature_data) + 7)).reshape(-1, 1)
+        future_predictions = model.predict(X_future)
+
+        return future_predictions
+    
     def get_coordinates(self, city_name):
         geolocator = Nominatim(user_agent="monitoring")
         location = geolocator.geocode(city_name)
@@ -145,7 +171,7 @@ class Business:
         
         start_date_predictions = datetime.now().strftime(f"%Y-%m-%d")
         end_date_predictions = (datetime.now() + timedelta(days=7)).strftime(f"%Y-%m-%d")
-        predictions = self.get_precipitation_history(latitude, longitude, start_date_predictions, end_date_predictions)
+        predictions = self.get_predictions(latitude, longitude)
         
         date_range_1 = pd.date_range(start=start_date, end=end_date, freq='D')
         date_range_2 = pd.date_range(start=start_date_predictions, end=end_date_predictions, freq='D')
