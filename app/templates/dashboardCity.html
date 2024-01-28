@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <title>{{city}} Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -19,7 +20,7 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        form {
+        .form {
             max-width: 80%;
             margin: 0 auto;
             background: white;
@@ -28,14 +29,14 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             padding: 20px;
             display: flex;
-            gap: 10px; /* Adjust the gap between form items */
+            gap: 10px; /* Adjust the gap between .form items */
         }
-        form label {
+        .form label {
             flex: 1; /* Full width for labels */
             max-height: 30px;
         }
         
-        form input {
+        .form input {
             flex: 1; /* Full width for input */
             box-sizing: border-box;
             border: 1px solid #ccc;
@@ -44,7 +45,7 @@
             max-height: 30px;
         }
         
-        form button {
+        .form button {
             flex: 1; /* Full width for button */
             background-color: #007bff;
             color: #fff;
@@ -55,7 +56,7 @@
             max-height: 30px;
         }
         
-        form button:hover {
+        .form button:hover {
             background-color: #0056b3;
         }
         .flex {
@@ -103,21 +104,39 @@
         @media (max-width: 480px) {
             .flex .chart-container {
                 flex-basis: 100%; /* Full width on very small screens */
-            }
+            }
         }        
+        #map {
+          align-items: center;
+          margin-top: 30px;
+          margin-right: 60px;
+          margin-left: 60px;
+          margin-bottom: 60px;
+          border: 2px solid gray;
+          border-radius: 6px;
+          position: relative;
+          height: 600px;
+        }
     </style>    
 </head>
 <body>
-    <h1>City Dashboard</h1> 
+    <h1>{{city}} Dashboard</h1> 
 
-    <form method="POST" action="{{ url_for('update_charts') }}">
+    <form class="form" method="POST" action="{{ url_for('update_charts') }}">
         <label for="start_date">Start Date (yyyy-mm-dd):</label>
         <input type="text" name="start_date" required>
 
         <label for="end_date">End Date (yyyy-mm-dd):</label>
         <input type="text" name="end_date" required>
+        
 
         <button type="submit">Update Charts</button>
+    </form>
+
+    <form method="post" action="{{ url_for('update_city_dashboard') }}" id="updateForm">
+        <input type="hidden" name="latitude" id="latitude">
+
+        <input type="hidden" name="longitude" id="longitude">
     </form>
 
     <div class="flex">
@@ -198,5 +217,45 @@
             }
         });
     </script>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([0, 0], 2);
+    
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    
+        // Add a custom layer to handle double-click events
+        var dblClickLayer = L.layerGroup().addTo(map);
+    
+        map.on('dblclick', function (e) {
+            e.originalEvent.preventDefault(); 
+            // Clear existing markers
+            dblClickLayer.clearLayers();
+    
+            // Add a marker at the clicked location
+            var marker = L.marker(e.latlng).addTo(dblClickLayer);
+    
+            // Open a popup with latitude and longitude
+            marker.bindPopup('Latitude: ' + e.latlng.lat + '<br>Longitude: ' + e.latlng.lng).openPopup();
+    
+            // Close the popup
+            marker.closePopup();
+    
+            sendLocationData(e.latlng.lat, e.latlng.lng);
+        });
+    
+        function sendLocationData(latitude, longitude) {
+            // Set the latitude and longitude values to the hidden input fields
+            document.getElementById('latitude').value = latitude;
+            document.getElementById('longitude').value = longitude;
+
+            // Submit the form
+            document.getElementById('updateForm').submit();
+        }
+    </script>
+    
+    
 </body>
 </html>

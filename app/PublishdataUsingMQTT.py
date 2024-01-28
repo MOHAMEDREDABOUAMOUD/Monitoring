@@ -7,6 +7,7 @@ from datetime import datetime
 
 broker_address = "test.mosquitto.org"
 topic = "iot/temp_reda"
+MAC = "00:1B:44:11:3A:B7"
 
 daoo = Dao()
 
@@ -25,8 +26,8 @@ def on_message(client, userdata, msg):
     numeric_part = string_value  # Skip the 'b' prefix
 
     # Convert the numeric part to a float
-    numeric_value = float(numeric_part)
-    daoo.addIOT({'id': 4, 'MAC': '00:1B:44:11:3A:B7', 'date': datetime.now(), 'temperature': numeric_value})
+    numeric_value = float(numeric_part.split(";")[1])
+    daoo.addIOT({'id': daoo.getIOTByMac(numeric_part.split(";")[0])["id"], 'MAC': numeric_part.split(";")[0], 'date': datetime.now(), 'temperature': numeric_value})
     print(f"Received message: {numeric_value}")
 
 # Create MQTT client
@@ -47,10 +48,12 @@ try:
         # Generate a random number
         random_number = round(random.uniform(-10, 50), 2)
         
-        # Publish the random number to the topic
-        client.publish(topic, str(random_number))
+        message = MAC+";"+str(random_number)
         
-        print(f"Published: {random_number}")
+        # Publish the random number to the topic
+        client.publish(topic, message)
+        
+        print(f"Published: {message}")
         
         # Wait for a short interval before publishing the next number
         time.sleep(6)

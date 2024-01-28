@@ -8,10 +8,8 @@ import requests_cache
 import pandas as pd
 from retry_requests import retry
 from sklearn.linear_model import LinearRegression
-import plotly.express as px
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
 import numpy as np
+import io
 
 class Business:
     def __init__(self) -> None:
@@ -156,14 +154,14 @@ class Business:
         future_predictions = model.predict(X_future)
 
         return future_predictions
+
     
     def get_coordinates(self, city_name):
         geolocator = Nominatim(user_agent="monitoring")
         location = geolocator.geocode(city_name)
         return (location.latitude, location.longitude)
 
-    def create_dashboard_city(self, city, start_date, end_date):
-        latitude, longitude = self.get_coordinates(city)
+    def create_dashboard_city(self, latitude, longitude, start_date, end_date):
         
         start_date = datetime.strptime(start_date, f"%Y-%m-%d")
         end_date = datetime.strptime(end_date, f"%Y-%m-%d")
@@ -206,9 +204,10 @@ class Business:
         plt.xticks(rotation=45)
         plt.legend()
         plt.ylim(0, storage)  # Set y-axis limits
-        storage_chart_path = './app/static/charts/storage_chart.png'
-        plt.savefig(storage_chart_path, bbox_inches='tight')
-        storage_chart_path = '../static/charts/storage_chart.png'
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png')
+        img_buffer.seek(0)
+        plt.clf()
         plt.close()
 
         # Creating and saving the RAM Used chart
@@ -220,9 +219,10 @@ class Business:
         plt.xticks(rotation=45)
         plt.legend()
         plt.ylim(0, ram)  # Set y-axis limits
-        ram_chart_path = './app/static/charts/ram_chart.png'
-        plt.savefig(ram_chart_path, bbox_inches='tight')
-        ram_chart_path = '../static/charts/ram_chart.png'
+        img_buffer2 = io.BytesIO()
+        plt.savefig(img_buffer2, format='png')
+        img_buffer2.seek(0)
+        plt.clf()
         plt.close()
 
         # Creating and saving the CPU Percentage chart
@@ -233,13 +233,14 @@ class Business:
         plt.title('CPU Percentage Over Time')
         plt.xticks(rotation=45)
         plt.legend()
-        cpu_chart_path = './app/static/charts/cpu_chart.png'
-        plt.savefig(cpu_chart_path, bbox_inches='tight')
-        cpu_chart_path = '../static/charts/cpu_chart.png'
+        img_buffer3 = io.BytesIO()
+        plt.savefig(img_buffer3, format='png')
+        img_buffer3.seek(0)
+        plt.clf()
         plt.close()
 
         # Return paths to the saved charts
-        return storage_chart_path, ram_chart_path, cpu_chart_path
+        return img_buffer, img_buffer2, img_buffer3
     def create_dashboard_IOT(self, data):
         # Convert the list of dictionaries to a DataFrame
         df = pd.DataFrame(data)
@@ -260,8 +261,13 @@ class Business:
         plt.title('IOT Dashboard')
         plt.grid(True)
         plt.legend()
-        temp_chart_path = "./app/static/charts/temp_chart.png"
-        plt.savefig(temp_chart_path)
-        temp_chart_path = "../static/charts/temp_chart.png"
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png')
+        img_buffer.seek(0)
+        plt.clf()
+        plt.close()
+        # temp_chart_path = "./app/static/charts/temp_chart.png"
+        # plt.savefig(temp_chart_path)
+        # temp_chart_path = "../static/charts/temp_chart.png"
         
-        return temp_chart_path
+        return img_buffer

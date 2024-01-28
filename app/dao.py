@@ -92,6 +92,9 @@ class Dao:
             objects.append(obj)
         return objects
     
+    def getIOTByMac(self, mac):
+        return self.clients.find_one({'address': mac})
+    
     def getIOTDataByMac(self, Mac):
         objects:list=[]
         for obj in self.IOT.find({'MAC': Mac}):
