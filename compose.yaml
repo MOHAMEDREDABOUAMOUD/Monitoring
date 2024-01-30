@@ -1,16 +1,20 @@
 services:
   flask:
-    build: .
+    build:
+      context: .
     container_name: flask
     ports:
-      - 8080:8080
+      - 9090:8080
     depends_on:
-      - db
+      - mysql
     volumes:
       - ./:/app
-
-  db:
-    image: mongo
-    container_name: mongo
+  mysql:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    container_name: mysql
     ports:
-      - 36000:27017
+      - "36000:3306"
+    volumes:
+      - ./db:/var/lib/mysql

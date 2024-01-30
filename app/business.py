@@ -16,6 +16,7 @@ class Business:
         self.cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
         self.retry_session = retry(self.cache_session, retries=5, backoff_factor=0.2)
         self.openmeteo = openmeteo_requests.Client(session=self.retry_session)     
+        
     def get(self, target, community,oid):
         ErrorIndication, ErrorStatus, ErrorIndex,varBinds= next(
             getCmd(SnmpEngine(),
@@ -135,7 +136,7 @@ class Business:
     def get_predictions(self, latitude, longitude):
         end_date = datetime.now() - timedelta(days=2)
         start_date = end_date - timedelta(days=14)
-        date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+        date_range = pd.date_range(start=start_date, end=end_date, freq='H')  # Change frequency to hourly
 
         temperature_data = self.get_precipitation_history(latitude, longitude, start_date, end_date)
 
@@ -149,8 +150,8 @@ class Business:
         # Train the model
         model.fit(X, y)
 
-        # Make predictions for the next 7 days
-        X_future = np.array(range(len(temperature_data), len(temperature_data) + 7)).reshape(-1, 1)
+        # Make predictions for the next 7 days (or 7 hours)
+        X_future = np.array(range(len(temperature_data), len(temperature_data) + 7 * 24)).reshape(-1, 1)  # Change 7 to the desired number of days
         future_predictions = model.predict(X_future)
 
         return future_predictions
@@ -240,7 +241,8 @@ class Business:
         plt.close()
 
         # Return paths to the saved charts
-        return img_buffer, img_buffer2, img_buffer3
+        return [img_buffer, img_buffer2, img_buffer3]
+    
     def create_dashboard_IOT(self, data):
         # Convert the list of dictionaries to a DataFrame
         df = pd.DataFrame(data)

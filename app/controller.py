@@ -54,7 +54,7 @@ def create_client():
         type=request.form['type']
         if type == 'CITY':
             latitude, longitude = services.get_coordinates(request.form['name'])
-            daoo.addClient({'id':id+1,'name':name, 'type':type, 'latitude':latitude, 'longitude':longitude})
+            daoo.addCityClient({'id':id+1,'name':name, 'type':type, 'latitude':latitude, 'longitude':longitude})
         else:
             address=request.form['address']
             latitude=request.form['latitude']
@@ -81,6 +81,7 @@ def details():
             #print("data : ", data)
             chart_paths = services.create_dashboard_enddevice(data)
             charts=[]
+            print("chart : ", client["id"])
             for path in chart_paths:
                 charts.append(base64.b64encode(path.getvalue()).decode('utf-8'))
             return render_template('dashboardEndDevice.html', chart_paths=charts)
