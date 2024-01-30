@@ -9,8 +9,6 @@ broker_address = "test.mosquitto.org"
 topic = "iot/temp_reda"
 MAC = "00:1B:44:11:3A:B7"
 
-daoo = Dao()
-
 # Callback when the client connects to the broker
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
@@ -31,15 +29,15 @@ def on_connect(client, userdata, flags, rc):
     
 #     print(f"Received message: {numeric_value}")
 
-def on_message(client, userdata, message):
-    try:
-        payload = message.payload.decode("utf-8")
-        numeric_part = payload.split(";")[1]
-        mac_address = payload.split(";")[0]
+# def on_message(client, userdata, message):
+#     try:
+#         payload = message.payload.decode("utf-8")
+#         numeric_part = payload.split(";")[1]
+#         mac_address = payload.split(";")[0]
 
-        daoo.addIOT({'id_client': 4, 'mac': mac_address, 'date': datetime.now(), 'temperature': numeric_part})
-    except Exception as e:
-        print(f"Error in on_message: {e}")
+#         daoo.addIOT({'id_client': 4, 'mac': mac_address, 'date': datetime.now(), 'temperature': numeric_part})
+#     except Exception as e:
+#         print(f"Error in on_message: {e}")
 
 # Rest of your MQTT client setup and loop here...
 
@@ -49,7 +47,7 @@ client = mqtt.Client()
 
 # Set callback functions
 client.on_connect = on_connect
-client.on_message = on_message
+#client.on_message = on_message
 
 # Connect to the broker
 client.connect(broker_address, 1883, 60)

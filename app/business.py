@@ -1,4 +1,20 @@
-from pysnmp.hlapi import *
+#from pysnmp.hlapi import *
+from pysnmp.hlapi import SnmpEngine, CommunityData, UdpTransportTarget, ContextData, getCmd, nextCmd, ObjectType, ObjectIdentity
+
+# Add any additional components you need from pysnmp.hlapi
+from pysnmp.hlapi import getCmd, nextCmd, ObjectType, ObjectIdentity
+
+# Now you can use the imported components in your code
+ErrorIndication, ErrorStatus, ErrorIndex, varBinds = next(
+    getCmd(SnmpEngine(),
+           CommunityData('public'),
+           UdpTransportTarget(('localhost', 161)),
+           ContextData(),
+           ObjectType(ObjectIdentity('1.3.6.1.2.1.1.1.0')))
+)
+
+# Continue using other components as needed
+
 import requests
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
@@ -75,6 +91,7 @@ class Business:
             usedStorage.append(hrStorageUsed_gb)
             i+=1
             
+        print(storage, usedStorage)
         storage.pop()
         storage.pop()
         usedStorage.pop()
@@ -155,7 +172,6 @@ class Business:
         future_predictions = model.predict(X_future)
 
         return future_predictions
-
     
     def get_coordinates(self, city_name):
         geolocator = Nominatim(user_agent="monitoring")
