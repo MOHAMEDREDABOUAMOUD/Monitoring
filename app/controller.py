@@ -49,17 +49,16 @@ def login():
 def create_client():
     print("enter create client")
     if request.method == 'POST':
-        id=daoo.getMaxId()
         name=request.form['name']
         type=request.form['type']
-        if type == 'CITY':
-            latitude, longitude = services.get_coordinates(request.form['name'])
-            daoo.addCityClient({'id':id+1,'name':name, 'type':type, 'latitude':latitude, 'longitude':longitude})
-        else:
+        if type == 'ENDDEVICE' or type == 'IOT':
             address=request.form['address']
             latitude=request.form['latitude']
             longitude=request.form['longitude']
-            daoo.addClient({'id':id+1,'name':name, 'address':address, 'type':type, 'latitude':latitude, 'longitude':longitude})
+            daoo.addClient({'name':name, 'address':address, 'type':type, 'latitude':latitude, 'longitude':longitude})
+        else:
+            latitude, longitude = services.get_coordinates(request.form['name'])
+            daoo.addCityClient({'name':name, 'type':type, 'latitude':latitude, 'longitude':longitude})
         
         return render_template('client_details.html', client_list=daoo.getClients())
     else:

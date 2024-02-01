@@ -1,20 +1,26 @@
 services:
+  db:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    container_name: db
+    ports:
+      - "36000:3306"
+    volumes:
+      - ./db:/var/lib/mysql
+    networks:
+      - app-network
   flask:
     build:
       context: .
     container_name: flask
     ports:
-      - 9090:8080
+      - 8080:9090
     depends_on:
-      - mysql
+      - db
     volumes:
       - ./:/app
-  mysql:
-    image: mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=1234
-    container_name: mysql
-    ports:
-      - "36000:3306"
-    volumes:
-      - ./db:/var/lib/mysql
+    networks:
+      - app-network
+networks:
+  app-network:

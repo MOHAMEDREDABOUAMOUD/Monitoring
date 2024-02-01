@@ -5,7 +5,10 @@ class Dao:
     def __init__(self) -> None:
         self.con = my.connect(
             user="root",
-            password="",
+            host="db",
+            #port="36000",
+            password="1234",
+            #password="",
             database="monitoring"
         )
         self.cursor = self.con.cursor()
@@ -173,9 +176,43 @@ class Dao:
 # Example Usage
 if __name__=="__main__":
     dao = Dao()
-    client=MongoClient('mongodb://localhost:27017')
-    db=client["monitoring"]
-    enddevices=db["EndDevice"]
-    iots=db["IOT"]
-    for obj in iots.find():
-        dao.addIOT({'mac': obj['MAC'], 'date': obj['date'], 'temperature': obj['temperature'], 'id_client': obj['id']})
+    print(dao.con)
+    
+    con = my.connect(
+            user="root",
+            port="3306",
+            password="",
+            database="monitoring"
+        )
+    cursor = con.cursor()
+    
+    cursor.execute("SELECT * FROM client")
+    clients = cursor.fetchall()
+
+    for client in clients:
+        insert_query = "INSERT INTO client (id, name, address, type, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s)"
+        dao.cursor.execute(insert_query, client)
+    
+    cursor.execute("SELECT * FROM enddevice")
+    clients = cursor.fetchall()
+
+    for client in clients:
+        insert_query = "INSERT INTO enddevice (id, date, storage, storage_used, ram, ram_used, cpu, id_client) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        dao.cursor.execute(insert_query, client)
+        
+    cursor.execute("SELECT * FROM iot")
+    clients = cursor.fetchall()
+
+    for client in clients:
+        insert_query = "INSERT INTO iot (id, mac, date, temperature, id_client) VALUES (%s, %s, %s, %s, %s)"
+        dao.cursor.execute(insert_query, client)
+
+    # Commit the changes
+    dao.con.commit()
+        
+    # client=MongoClient('mongodb://localhost:27017')
+    # db=client["monitoring"]
+    # enddevices=db["EndDevice"]
+    # iots=db["IOT"]
+    # for obj in iots.find():
+    #     dao.addIOT({'mac': obj['MAC'], 'date': obj['date'], 'temperature': obj['temperature'], 'id_client': obj['id']})
